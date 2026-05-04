@@ -2,7 +2,7 @@
 # EDIT THIS FILE TO IMPLEMENT TASK A.
 # Adjacency matrix implementation of the Graph ABC.
 #
-# __author__ = 'YOUR NAME HERE'
+# __author__ = 'Shenghang Weng'
 # __project__ = 'Modelling a Disease Outbreak'
 # __copyright__ = 'Copyright 2026, RMIT University'
 # -------------------------------------------------
@@ -75,7 +75,17 @@ class AdjacencyMatrix(Graph):
         @returns: True if the edge was added successfully, False otherwise.
         """
         # TODO: implement this method
-        return False
+        if u.index >= len(self._vertices) or v.index >= len(self._vertices):
+            return False
+        
+        if self._matrix[u.index][v.index] == 0.0:
+            # If matrix row and column = 0.0, no connection, so we can add connection
+            self._num_edges += 1
+            self._matrix[u.index][v.index] = weight
+            self._matrix[v.index][u.index] = weight
+            
+
+            return True
 
     def get_vertices(self) -> list[Vertex]:
         """
@@ -96,7 +106,13 @@ class AdjacencyMatrix(Graph):
         @returns: A list of all Edge objects in the graph.
         """
         # TODO: implement this method
-        return []
+        edges = []
+        for i in range(len(self._vertices)):
+            for j in range(i + 1, len(self._vertices)):
+                if self._matrix[i][j] > 0.0:
+                    edges.append(Edge(self._vertices[i], self._vertices[j], self._matrix[i][j]))
+                    # The edges needs vertex row, and column, and its weighting
+        return edges
 
     def get_neighbours(self, vertex: Vertex) -> list[tuple[Vertex, float]]:
         """
@@ -113,7 +129,12 @@ class AdjacencyMatrix(Graph):
         @returns: A list of (neighbour, weight) tuples, one per neighbouring vertex.
         """
         # TODO: implement this method
-        return []
+        neighbours = []
+        for j in range(len(self._vertices)):
+            if self._matrix[vertex.index][j] > 0.0:
+                neighbours.append((self._vertices[j], self._matrix[vertex.index][j]))
+                # neighbours store vertices row and column, and weighting again
+        return neighbours
 
     def has_edge(self, u: Vertex, v: Vertex) -> bool:
         """
@@ -140,7 +161,9 @@ class AdjacencyMatrix(Graph):
         @returns: The edge weight as a float, or 0.0 if no edge exists.
         """
         # TODO: implement this method
-        return 0.0
+        if u.index >= len(self._vertices) or v.index >= len(self._vertices):
+            return 0.0
+        return self._matrix[u.index][v.index]
 
     def num_vertices(self) -> int:
         """

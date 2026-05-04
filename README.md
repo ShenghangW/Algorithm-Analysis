@@ -66,7 +66,8 @@ Set `risk_solver` to `"task_b"` in the config to run your implementation.
 
 To test your implementation:
 ```bash
-python -m tests.test_risk
+# GO to cd tests
+python -m task_a 
 ```
 
 ---
