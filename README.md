@@ -75,7 +75,7 @@ python -m task_a
 ### Task C — Empirical Analysis (8 marks, report only)
 
 **No implementation required.** Marks are awarded solely for the quality of your analysis,
-experimental design, and discussion in the report.
+experimental design, and discussion in the report.  
 
 You will compare all four combinations of algorithm and representation:
 - `monte_carlo` with adjacency list

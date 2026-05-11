@@ -66,6 +66,40 @@ def task_d(eligible: list[Person],
     #   2. Include person i (only valid if dosage fits)
     # Don't forget tiebreaking on minimum doses.
     # --------------------------------------------------
+    # Base case: 0 residents → 0 benefit, 0 doses
+    for c in range(C + 1):
+        memo[0][c] = (0.0, 0)
+
+    # Fill DP table
+    for i in range(1, n + 1):
+        person = eligible[i - 1]
+        cost = person.dosage_requirement
+        benefit = person.prob_of_infection  # benefit = infection risk score
+
+        for c in range(C + 1):
+            # Option 1: skip person i
+            skip = memo[i - 1][c]
+
+            # Option 2: include person i (only if they fit)
+            include = None
+            if cost <= c:
+                prev = memo[i - 1][c - cost]
+                if prev is not None:
+                    include = (prev[0] + benefit, prev[1] + cost)
+
+            # Choose best option with tiebreaking on min doses
+            if include is None:
+                memo[i][c] = skip
+            elif skip is None:
+                memo[i][c] = include
+            else:
+                # Prefer higher benefit; tie → prefer fewer doses
+                if include[0] > skip[0]:
+                    memo[i][c] = include
+                elif skip[0] > include[0]:
+                    memo[i][c] = skip
+                else:  # equal benefit → fewer doses wins
+                    memo[i][c] = include if include[1] < skip[1] else skip
 
     # --------------------------------------------------
     # TODO: backtrack through your memo table to recover
@@ -75,13 +109,29 @@ def task_d(eligible: list[Person],
     # they were included. Don't forget to check doses
     # as well as benefit when backtracking.
     # --------------------------------------------------
+    # Backtrack to recover selected persons
+    best_subset: list[Person] = []
+    c = C
+    for i in range(n, 0, -1):
+        person = eligible[i - 1]
+        cost = person.dosage_requirement
 
+        current = memo[i][c]
+        without = memo[i - 1][c]
+
+        # Person i was included if result differs from skipping them
+        included = (current != without)
+        if included:
+            best_subset.append(person)
+            c -= cost
+    
+    best_subset.reverse()
     # --------------------------------------------------
     # These must be set correctly before returning.
     # Do not remove or rename them.
     # --------------------------------------------------
-    best_subset: list[Person] = []  # DELETE THIS LINE after implementing
-    best_benefit: float = 0.0       # DELETE THIS LINE after implementing
-    best_doses: int = 0             # DELETE THIS LINE after implementing
+    result = memo[n][C]
+    best_benefit = result[0] if result else 0.0
+    best_doses = result[1] if result else 0
 
     return best_subset, best_benefit, best_doses, memo
