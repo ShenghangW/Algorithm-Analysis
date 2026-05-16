@@ -50,9 +50,10 @@ def task_d(eligible: list[Person],
     # to handle tiebreaking correctly.
     # --------------------------------------------------
 
-    # memo[i][c] stores the best result achievable using
-    # the first i persons with capacity c.
-    # None indicates the subproblem has not yet been solved.
+    # Create a 2D table of size (n+1) x (C+1)
+    # memo[i][c] will store the best (benefit, doses_used) achievable
+    # using the first i residents with c doses available
+    # All cells start as None — meaning "not yet computed"
     memo: list[list[tuple[float, int] | None]] = [
         [None] * (C + 1) for _ in range(n + 1)
     ]
@@ -70,36 +71,56 @@ def task_d(eligible: list[Person],
     for c in range(C + 1):
         memo[0][c] = (0.0, 0)
 
-    # Fill DP table
-    for i in range(1, n + 1):
-        person = eligible[i - 1]
+    def solve(i: int, c: int) -> tuple[float,int]:
+        # If this subproblem was already solved before, just return it
+        # This is what makes it "memoisation" — we never recompute the same cell twice
+        if memo[i][c] is not None:
+            return memo[i][c]
+
+        # Get the current resident's details
+        person = eligible[i - 1] # i is 1-indexed, eligible is 0-indexed
         cost = person.dosage_requirement
-        benefit = person.prob_of_infection  # benefit = infection risk score
+        benefit = person.prob_of_infection
 
-        for c in range(C + 1):
-            # Option 1: skip person i
-            skip = memo[i - 1][c]
+        # Option 1: skip this resident
+        # Just carry forward whatever was best without them
+        skip = solve(i - 1, c)
 
-            # Option 2: include person i (only if they fit)
-            include = None
-            if cost <= c:
-                prev = memo[i - 1][c - cost]
-                if prev is not None:
-                    include = (prev[0] + benefit, prev[1] + cost)
-
-            # Choose best option with tiebreaking on min doses
-            if include is None:
-                memo[i][c] = skip
-            elif skip is None:
-                memo[i][c] = include
+        # Option 2: include this resident
+        # Only valid if their dosage cost fits within the remaining capacity
+        include = None
+        if cost <= c:
+            # Look up the best result for the remaining capacity after using their doses
+            prev = solve(i - 1, c - cost)
+            # Add this resident's benefit and cost on top of that
+            include = (prev[0] + benefit, prev[1] + cost)
+        
+        # Now decide which option is better
+        if include is None:
+            # Couldn't include them (too expensive), so skip is the only choice
+            result = skip
+        elif skip is None:
+            # This shouldn't normally happen since base case fills row 0,
+            # but just in case, default to include
+            result = include
+        else:
+            # Both options are valid - pick the one with higher benefit
+            if include[0] > skip[0]:
+                result = include
+            elif skip[0] > include[0]:
+                result = skip
             else:
-                # Prefer higher benefit; tie → prefer fewer doses
-                if include[0] > skip[0]:
-                    memo[i][c] = include
-                elif skip[0] > include[0]:
-                    memo[i][c] = skip
-                else:  # equal benefit → fewer doses wins
-                    memo[i][c] = include if include[1] < skip[1] else skip
+                # Tiebreak: same benefit -> pick whichever uses fewer doses
+                result = include if include[1] < skip[1] else skip
+        
+        # save the result so we dont recompute this cell again
+        memo[i][c] = result
+        return result
+    
+    # Only solve the one problem we actually need: all n residents, full capacity C
+    # The recursion will automatically only compute the cells it needs
+    # This is why fewer cells get filled compared to bottom-up (which fills everything)
+    solve(n, C)
 
     # --------------------------------------------------
     # TODO: backtrack through your memo table to recover
@@ -109,27 +130,30 @@ def task_d(eligible: list[Person],
     # they were included. Don't forget to check doses
     # as well as benefit when backtracking.
     # --------------------------------------------------
-    # Backtrack to recover selected persons
+    # Backtrack through the memo table to find out WHICH residents were selected
+    # Start from the bottom-right of the table and work backwards
     best_subset: list[Person] = []
-    c = C
+    c = C   # keep track of remaining capacity as we backtrack
     for i in range(n, 0, -1):
         person = eligible[i - 1]
         cost = person.dosage_requirement
 
-        current = memo[i][c]
-        without = memo[i - 1][c]
+        current = memo[i][c]        # result WITH this resident considered
+        without = memo[i - 1][c]    # result WITHOUT this resident
 
-        # Person i was included if result differs from skipping them
+        # If the results differ, this resident was included in the optimal solution
         included = (current != without)
         if included:
             best_subset.append(person)
-            c -= cost
+            c -= cost  # reduce remaining capacity by their dosage cost
     
+    # Reverse because we collected residents from last to first
     best_subset.reverse()
     # --------------------------------------------------
     # These must be set correctly before returning.
     # Do not remove or rename them.
     # --------------------------------------------------
+    # Read final answer directly from the top-level cell
     result = memo[n][C]
     best_benefit = result[0] if result else 0.0
     best_doses = result[1] if result else 0
