@@ -22,16 +22,16 @@ disease_spread/
         vertex.py                 # Base Vertex class — DO NOT EDIT
         edge.py                   # Base Edge class — DO NOT EDIT
         adjacency_list.py         # Adjacency list (reference) — DO NOT EDIT
-        adjacency_matrix.py       # TASK A — implement this file
+        adjacency_matrix.py       
     simulation/
         person.py                 # Person class (extends Vertex) — DO NOT EDIT
         city.py                   # Builds the contact graph from config — DO NOT EDIT
     transmission/
         monte_carlo.py            # Monte Carlo baseline (reference) — DO NOT EDIT
-        task_b.py                 # TASK B — implement this file
+        task_b.py                 
     treatment/
         vaccination_program.py    # Brute-force baseline (reference) — DO NOT EDIT
-        task_d.py                 # TASK D — implement this file
+        task_d.py                 
     utils/
         config_validator.py       # Config validation — DO NOT EDIT
         simulation_utils.py       # Simulation helpers — DO NOT EDIT
@@ -39,7 +39,7 @@ disease_spread/
         visualise.py              # Visualisation — DO NOT EDIT
     visuals/                      # Generated PDF visualisations saved here
     simulate_outbreak.py          # Main entry point — DO NOT EDIT
-    task_c_analysis.py            # Task C timing script — DO NOT EDIT
+    task_c_analysis.py            
     example_config.json           # Example configuration file
 ```
 
